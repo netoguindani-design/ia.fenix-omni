@@ -1,0 +1,9 @@
+torch
+torchvision
+yfinance
+gTTS
+streamlit
+pandas
+numpy
+requests
+scikit-learn
