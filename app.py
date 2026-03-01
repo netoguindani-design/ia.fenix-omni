@@ -102,5 +102,5 @@ if btn_ativar:
             
             time.sleep(60) # Espera 1 minuto para o próximo ciclo
             
-                MEU_WHATSAPP = "+5593981292787"
+                MEU_WHATSAPP="+5593981292787"
                 API_KEY_WHATSAPP = “9580681” 
