@@ -91,7 +91,7 @@ if btn_ativar:
                 if len(st.session_state.historico_precos) > 1:
                     variacao = (preco_atual - st.session_state.historico_precos[-1]) / st.session_state.historico_precos[-1]
                     
-                    if abs(variacao) > 0.001: # Mudança de 0.1%
+                    if abs(variacao) > 0.05: # Mudança de 5%
                         msg = f"Mestre, detectei movimento em {ticker_input}. O preço agora é {preco_atual:.2f}. Minha rede neural está se adaptando."
                         st.success(msg)
                         falar(msg)
@@ -102,6 +102,5 @@ if btn_ativar:
             
             time.sleep(60) # Espera 1 minuto para o próximo ciclo
             
-               # No seu app.py, altere estas linhas:
                 MEU_WHATSAPP = "+5593981292787"
                  API_KEY_WHATSAPP = “9580681” #
