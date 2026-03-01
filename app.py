@@ -101,5 +101,6 @@ if btn_ativar:
                 st.session_state.historico_precos.append(preco_atual)
             
             time.sleep(60) # Espera 1 minuto para o próximo ciclo
-MEU_WHATSAPP = "+5593981292787"
-API_KEY_WHATSAPP = “9580681” #
+def enviar_mensagem():
+    MEU_WHATSAPP = "+5593981292787"
+    API_KEY_WHATSAPP = “9580681” 
