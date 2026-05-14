@@ -117,9 +117,9 @@ from tensorflow.keras.callbacks import EarlyStopping
 # CONFIGURAÇÕES
 # ==========================
 
-ativo = "SGD=X"      # Exemplo
+ativo = "USDSGD=X"      # Exemplo
 periodo = "60d"
-intervalo = "1h"
+intervalo = "30S"
 janela = 30
 
 # ==========================
@@ -281,4 +281,26 @@ elif prob < 0.40:
     print("Sinal: Tendência de BAIXA")
 else:
     print("Sinal: Região neutra")
-    
+    import yfinance as yf
+
+ativo = "USDSGD=X"
+
+try:
+    dados = yf.download(
+        ativo,
+        period="60d",
+        interval="1h"
+    )
+
+    if dados.empty:
+        raise Exception(
+            "Nenhum dado retornado."
+        )
+
+    print("Dados carregados com sucesso")
+    print(dados.tail())
+
+except Exception as erro:
+    print(
+        f"Erro ao buscar dados: {erro}"
+    )
