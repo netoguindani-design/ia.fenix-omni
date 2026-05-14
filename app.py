@@ -104,3 +104,181 @@ if btn_ativar:
 def enviar_mensagem():
     MEU_WHATSAPP = "+5593981292787"
     API_KEY_WHATSAPP = '9580681'
+    import numpy as np
+import pandas as pd
+import yfinance as yf
+from sklearn.preprocessing import MinMaxScaler
+from sklearn.model_selection import train_test_split
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import LSTM, Dense, Dropout
+from tensorflow.keras.callbacks import EarlyStopping
+
+# ==========================
+# CONFIGURAÇÕES
+# ==========================
+
+ativo = "SGD=X"      # Exemplo
+periodo = "60d"
+intervalo = "1h"
+janela = 30
+
+# ==========================
+# BAIXA DADOS
+# ==========================
+
+print("Baixando dados...")
+
+dados = yf.download(
+    ativo,
+    period=periodo,
+    interval=intervalo
+)
+
+dados = dados[['Close']].dropna()
+
+# Criar alvo:
+# 1 = próxima vela sobe
+# 0 = próxima vela cai
+
+dados["Target"] = (
+    dados["Close"].shift(-1)
+    > dados["Close"]
+).astype(int)
+
+dados.dropna(inplace=True)
+
+# ==========================
+# NORMALIZAÇÃO
+# ==========================
+
+scaler = MinMaxScaler()
+
+precos = scaler.fit_transform(
+    dados[['Close']]
+)
+
+X = []
+y = []
+
+for i in range(janela, len(precos)-1):
+
+    X.append(
+        precos[i-janela:i]
+    )
+
+    y.append(
+        dados["Target"].iloc[i]
+    )
+
+X = np.array(X)
+y = np.array(y)
+
+# ==========================
+# TREINO / TESTE
+# ==========================
+
+X_train, X_test, y_train, y_test = train_test_split(
+    X,
+    y,
+    test_size=0.2,
+    shuffle=False
+)
+
+# ==========================
+# MODELO LSTM
+# ==========================
+
+modelo = Sequential()
+
+modelo.add(
+    LSTM(
+        64,
+        return_sequences=True,
+        input_shape=(X.shape[1],1)
+    )
+)
+
+modelo.add(
+    Dropout(0.2)
+)
+
+modelo.add(
+    LSTM(32)
+)
+
+modelo.add(
+    Dropout(0.2)
+)
+
+modelo.add(
+    Dense(
+        1,
+        activation='sigmoid'
+    )
+)
+
+modelo.compile(
+    optimizer='adam',
+    loss='binary_crossentropy',
+    metrics=['accuracy']
+)
+
+early = EarlyStopping(
+    patience=5,
+    restore_best_weights=True
+)
+
+print("Treinando IA...")
+
+modelo.fit(
+    X_train,
+    y_train,
+    epochs=30,
+    batch_size=32,
+    validation_split=0.2,
+    callbacks=[early]
+)
+
+# ==========================
+# TESTE
+# ==========================
+
+loss, acc = modelo.evaluate(
+    X_test,
+    y_test
+)
+
+print(f"\nPrecisão: {acc*100:.2f}%")
+
+# ==========================
+# PREVISÃO ATUAL
+# ==========================
+
+ultimo = precos[-janela:]
+ultimo = ultimo.reshape(
+    1,
+    janela,
+    1
+)
+
+prob = modelo.predict(
+    ultimo
+)[0][0]
+
+print("\n=== PREVISÃO ===")
+
+print(
+    f"Probabilidade de ALTA: {prob*100:.2f}%"
+)
+
+print(
+    f"Probabilidade de BAIXA: {(1-prob)*100:.2f}%"
+)
+
+if prob > 0.60:
+    print("Sinal: Tendência de ALTA")
+elif prob < 0.40:
+    print("Sinal: Tendência de BAIXA")
+else:
+    print("Sinal: Região neutra")
+    
